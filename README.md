@@ -6,7 +6,7 @@
 <!-- CI rozeti: repo adını 'klaxon'dan farklı yaparsan aşağıdaki yolu güncelle -->
 ![CI](https://github.com/halilkeles6666/klaxon/actions/workflows/ci.yml/badge.svg)
 
-- **Canlı uygulama:** _(deploy sonrası Render URL'si buraya — bkz. [DEPLOY.md](DEPLOY.md))_
+- **Canlı uygulama:** **https://klaxon-wgno.onrender.com** (Render)
 - **Demo giriş:** `responder@klaxon.test` / `password`
 - **Teknoloji:** Ruby 3.4 · Rails 8 · SQLite (dev/test) · PostgreSQL (production) · Minitest
 
