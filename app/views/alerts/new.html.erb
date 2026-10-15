@@ -1,0 +1,49 @@
+<% content_for :title, "Alarm gönder" %>
+
+<div class="auth-card card" style="max-width:560px">
+  <h1 style="font-size:20px;margin:0 0 6px">Alarm gönder</h1>
+  <p class="subtle" style="margin-top:0">
+    Bu form bir izleme aracını (health check, Prometheus, Datadog…) taklit eder.
+    Gönderilen alarm yeni bir olay açar — ya da aynı servis/anahtardan açık bir olay
+    varsa oraya gruplanır (gürültü azaltma).
+  </p>
+
+  <% if @services.blank? %>
+    <div class="errors">Önce bir servis tanımlanmalı (seed verisi). Lütfen <code>bin/rails db:seed</code> çalıştırın.</div>
+  <% else %>
+    <%= form_with url: alerts_path, method: :post do |f| %>
+      <div class="field">
+        <%= f.label "alert[service_id]", "Servis" %>
+        <%= f.select "alert[service_id]",
+              options_from_collection_for_select(@services, :id, :name, @service_id),
+              {}, {} %>
+      </div>
+
+      <div class="field">
+        <%= f.label "alert[title]", "Alarm başlığı" %>
+        <%= f.text_field "alert[title]", placeholder: "ör. Yüksek 5xx hata oranı" %>
+      </div>
+
+      <div class="field">
+        <%= f.label "alert[summary]", "Özet (opsiyonel)" %>
+        <%= f.text_field "alert[summary]", placeholder: "ör. /checkout üzerinde %12 hata" %>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <%= f.label "alert[dedup_key]", "Dedup anahtarı (opsiyonel)" %>
+          <%= f.text_field "alert[dedup_key]", placeholder: "boş bırakırsan başlıktan türetilir" %>
+          <p class="hint">Aynı anahtarla gelen tekrar alarmlar tek olaya gruplanır.</p>
+        </div>
+        <div class="field">
+          <%= f.label "alert[urgency]", "Aciliyet" %>
+          <%= f.select "alert[urgency]", [["Yüksek", "high"], ["Düşük", "low"]] %>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <%= f.submit "Alarmı gönder", class: "btn" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

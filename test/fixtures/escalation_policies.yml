@@ -1,0 +1,11 @@
+critical:
+  name: Kritik
+  ack_timeout_minutes: 5
+  max_level: 3
+  active: true
+
+standard:
+  name: Standart
+  ack_timeout_minutes: 15
+  max_level: 3
+  active: true

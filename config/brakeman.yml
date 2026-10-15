@@ -1,0 +1,6 @@
+# Skip only the time-based "Rails version reaches end-of-life" notice, which is
+# not a code vulnerability. All real security checks stay enabled.
+---
+:skip_checks:
+  - CheckEOLRails
+  - CheckEOLRuby

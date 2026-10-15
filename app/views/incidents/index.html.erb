@@ -1,0 +1,59 @@
+<% content_for :title, "Olaylar" %>
+
+<div class="page-head">
+  <div>
+    <h1>Olaylar</h1>
+    <p class="subtle">Görevli çalışma alanı — alarmdan çözüme olay yaşam döngüsü.</p>
+  </div>
+  <%= link_to "Alarm gönder (demo)", new_alert_path, class: "btn" %>
+</div>
+
+<div class="filters">
+  <%= link_to "Tümü", incidents_path, class: ("is-active" unless @status) %>
+  <% Incident::STATUSES.each do |s| %>
+    <%= link_to "#{status_label(s)} (#{@counts.fetch(s, 0)})",
+                incidents_path(status: s),
+                class: ("is-active" if @status == s) %>
+  <% end %>
+</div>
+
+<% if @incidents.any? %>
+  <table class="queue">
+    <thead>
+      <tr>
+        <th>Referans</th>
+        <th>Başlık</th>
+        <th>Servis</th>
+        <th>Aciliyet</th>
+        <th>Seviye</th>
+        <th>Eskalasyon</th>
+        <th>Durum</th>
+        <th>Alarm</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @incidents.each do |incident| %>
+        <tr>
+          <td><%= link_to incident.reference, incident_path(incident), class: "ref" %></td>
+          <td><%= incident.title %></td>
+          <td class="subtle"><%= incident.service.name %></td>
+          <td><%= urgency_tag(incident.urgency) %></td>
+          <td><%= level_tag(incident) %></td>
+          <td><%= escalation_badge(incident) %></td>
+          <td><%= status_pill(incident.status) %></td>
+          <td class="subtle">
+            <%= incident.alerts_count %>
+            <% if incident.duplicate_alerts_count.positive? %>
+              <span class="badge-dup">+<%= incident.duplicate_alerts_count %> tekrar</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <div class="card center">
+    <p class="subtle">Bu görünümde olay yok.</p>
+    <%= link_to "Demo alarm gönder", new_alert_path, class: "btn" %>
+  </div>
+<% end %>

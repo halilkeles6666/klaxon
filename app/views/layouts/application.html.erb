@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Klaxon" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <%= link_to root_path, class: "brand" do %>
+          <%= render "shared/logo" %>
+          <span class="brand__name">Klaxon</span>
+        <% end %>
+        <nav class="topnav">
+          <% if current_user %>
+            <%= link_to "Olaylar", incidents_path, class: "topnav__link" %>
+            <%= link_to "Alarm gönder", new_alert_path, class: "topnav__link" %>
+            <span class="topnav__user"><%= current_user.display_name %></span>
+            <%= button_to "Çıkış", session_path, method: :delete, class: "btn btn--ghost btn--sm" %>
+          <% else %>
+            <%= link_to "Alarm gönder", new_alert_path, class: "topnav__link" %>
+            <%= link_to "Görevli girişi", new_session_path, class: "btn btn--sm" %>
+          <% end %>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container main">
+      <% if notice %>
+        <div class="flash flash--notice"><%= notice %></div>
+      <% end %>
+      <% if alert %>
+        <div class="flash flash--alert"><%= alert %></div>
+      <% end %>
+      <%= yield %>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        Klaxon · olay yönetimi (incident response) demosu ·
+        <span class="footer__muted">ilham kaynağı README'de belirtilmiştir</span>
+      </div>
+    </footer>
+  </body>
+</html>

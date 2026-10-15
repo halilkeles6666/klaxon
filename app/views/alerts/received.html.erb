@@ -1,0 +1,22 @@
+<% content_for :title, "Alarm alındı" %>
+
+<div class="auth-card card center" style="max-width:520px">
+  <% if @outcome == "grouped" %>
+    <h1 style="font-size:20px;margin:0 0 4px">Alarm mevcut olaya gruplandı 🔕</h1>
+    <p class="subtle">
+      Bu servis/anahtar için zaten açık bir olay vardı. Yeni çağrı göndermek yerine
+      alarm o olaya eklendi (gürültü azaltma).
+    </p>
+  <% else %>
+    <h1 style="font-size:20px;margin:0 0 4px">Yeni olay açıldı 🚨</h1>
+    <p class="subtle">Alarm bir olay oluşturdu ve görevli kuyruğuna düştü.</p>
+  <% end %>
+
+  <p class="big-ref"><%= @incident.reference %></p>
+  <p class="subtle"><%= @incident.title %> · <%= @incident.service.name %></p>
+
+  <div class="form-actions" style="justify-content:center">
+    <%= link_to "Başka alarm gönder", new_alert_path, class: "btn btn--ghost" %>
+    <%= link_to "Görevli girişi", new_session_path, class: "btn" %>
+  </div>
+</div>

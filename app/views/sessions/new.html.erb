@@ -1,0 +1,30 @@
+<% content_for :title, "Görevli girişi" %>
+
+<div class="card auth-card">
+  <div class="center" style="margin-bottom: 16px;">
+    <%= render "shared/logo" %>
+    <h1 style="margin: 10px 0 2px; font-size: 20px;">Görevli girişi</h1>
+    <p class="subtle" style="margin:0;">Klaxon olay yönetimi paneli</p>
+  </div>
+
+  <%= form_with url: session_path do |form| %>
+    <div class="field">
+      <%= form.label :email_address, "E-posta" %>
+      <%= form.email_field :email_address, required: true, autofocus: true,
+            autocomplete: "username", placeholder: "responder@klaxon.test", value: params[:email_address] %>
+    </div>
+    <div class="field">
+      <%= form.label :password, "Parola" %>
+      <%= form.password_field :password, required: true, autocomplete: "current-password",
+            placeholder: "••••••••", maxlength: 72 %>
+    </div>
+    <div class="form-actions">
+      <%= form.submit "Giriş yap", class: "btn" %>
+      <%= link_to "Parolamı unuttum", new_password_path, class: "subtle" %>
+    </div>
+  <% end %>
+
+  <p class="hint center" style="margin-top: 16px;">
+    Demo: <code>responder@klaxon.test</code> / <code>password</code>
+  </p>
+</div>

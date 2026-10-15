@@ -1,0 +1,106 @@
+<% content_for :title, @incident.reference %>
+
+<div class="page-head">
+  <div>
+    <h1><%= @incident.title %></h1>
+    <p class="subtle">
+      <%= @incident.reference %> · <%= @incident.service.name %> ·
+      <%= status_pill(@incident.status) %> <%= urgency_tag(@incident.urgency) %> <%= level_tag(@incident) %>
+    </p>
+  </div>
+  <%= link_to "← Kuyruk", incidents_path, class: "btn btn--ghost" %>
+</div>
+
+<% if @incident.duplicate_alerts_count.positive? %>
+  <div class="dedup-note">
+    🔕 Gürültü azaltıldı: aynı servis/anahtardan gelen
+    <strong><%= @incident.duplicate_alerts_count %></strong> yinelenen alarm, yeni olay açıp
+    tekrar çağrı göndermek yerine bu olaya gruplandı.
+  </div>
+<% end %>
+
+<div class="layout-2col">
+  <div>
+    <div class="card">
+      <div class="metrics">
+        <span class="metric"><span class="n"><%= @incident.alerts_count %></span><span class="l">toplam alarm</span></span>
+        <span class="metric"><span class="n"><%= @incident.duplicate_alerts_count %></span><span class="l">bastırılan tekrar</span></span>
+        <span class="metric"><span class="n"><%= @incident.escalation_level %>/<%= @incident.max_level %></span><span class="l">eskalasyon seviyesi</span></span>
+      </div>
+      <p style="margin:14px 0 0"><%= escalation_badge(@incident) %></p>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:16px;margin:0 0 12px">Aksiyonlar</h2>
+      <div class="transitions">
+        <% if @incident.can_transition_to?("acknowledged") %>
+          <%= button_to "Onayla", acknowledge_incident_path(@incident), method: :patch, class: "btn" %>
+        <% end %>
+        <% if @incident.can_transition_to?("resolved") %>
+          <%= button_to "Çözüldü", resolve_incident_path(@incident), method: :patch, class: "btn btn--secondary" %>
+        <% end %>
+        <% if @incident.can_transition_to?("triggered") %>
+          <%= button_to "Yeniden aç", reopen_incident_path(@incident), method: :patch, class: "btn btn--ghost" %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:16px;margin:0 0 12px">Zaman çizelgesi</h2>
+      <ul class="timeline">
+        <% @events.each do |event| %>
+          <li class="evt--<%= event.kind %>">
+            <div class="evt__head">
+              <span class="evt__kind"><%= event_label(event.kind) %></span>
+              <span class="evt__meta">
+                · <%= fmt_time(event.created_at) %>
+                <% if event.actor %> · <%= event.actor.display_name %><% end %>
+              </span>
+            </div>
+            <% if event.detail.present? %>
+              <div class="evt__detail"><%= event.detail %></div>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+
+      <%= form_with url: incident_notes_path(@incident), method: :post do |f| %>
+        <div class="field" style="margin-top:8px">
+          <%= f.label "note[detail]", "Not ekle" %>
+          <%= f.text_area "note[detail]", rows: 2, placeholder: "Araştırma notu, kök neden, vb." %>
+        </div>
+        <%= f.submit "Not ekle", class: "btn btn--sm" %>
+      <% end %>
+    </div>
+  </div>
+
+  <aside>
+    <div class="card">
+      <h2 style="font-size:16px;margin:0 0 12px">Ayrıntılar</h2>
+      <ul class="meta-list">
+        <li><span class="k">Servis</span><span><%= @incident.service.name %></span></li>
+        <li><span class="k">Dedup anahtarı</span><span><code><%= @incident.dedup_key %></code></span></li>
+        <li><span class="k">Politika</span><span><%= @incident.service.escalation_policy.name %></span></li>
+        <li><span class="k">Onay süresi</span><span><%= @incident.ack_timeout_minutes %> dk</span></li>
+        <li><span class="k">Tetiklendi</span><span><%= fmt_time(@incident.triggered_at) %></span></li>
+        <li><span class="k">Onaylandı</span><span><%= fmt_time(@incident.acknowledged_at) %></span></li>
+        <li><span class="k">Çözüldü</span><span><%= fmt_time(@incident.resolved_at) %></span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:16px;margin:0 0 12px">Alarmlar (<%= @incident.alerts_count %>)</h2>
+      <ul class="alerts">
+        <% @alerts.each do |a| %>
+          <li>
+            <span><%= a.summary %></span>
+            <span class="subtle">
+              <%= fmt_time(a.created_at) %>
+              <% if a.deduplicated %><span class="badge-dup">tekrar</span><% end %>
+            </span>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </aside>
+</div>

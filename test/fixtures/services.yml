@@ -1,0 +1,11 @@
+payments:
+  name: Ödeme API
+  routing_key: payments-api
+  escalation_policy: critical
+  active: true
+
+web:
+  name: Web Ön Yüz
+  routing_key: web-frontend
+  escalation_policy: standard
+  active: true
