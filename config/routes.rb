@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   # Autonomous agent->agent simulation dashboard (authentication required).
   get  "simulation",       to: "simulation#index", as: :simulation
   post "simulation/run",   to: "simulation#run",   as: :run_simulation
+  post "simulation/tick",  to: "simulation#tick",  as: :tick_simulation
   post "simulation/reset", to: "simulation#reset", as: :reset_simulation
 
   # Responder workspace (authentication required).

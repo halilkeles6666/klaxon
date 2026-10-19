@@ -3,6 +3,7 @@ class User < ApplicationRecord
 
   has_secure_password
   has_many :sessions, dependent: :destroy
+  has_many :on_call_shifts, dependent: :destroy
   has_many :acknowledged_incidents, class_name: "Incident",
            foreign_key: :acknowledged_by_id, dependent: :nullify
   has_many :incident_events, foreign_key: :actor_id, dependent: :nullify

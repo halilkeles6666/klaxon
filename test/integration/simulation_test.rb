@@ -35,6 +35,15 @@ class SimulationTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "tick creates one incident and returns the board" do
+    sign_in
+    assert_difference -> { Incident.simulated.count }, 1 do
+      post tick_simulation_path
+    end
+    assert_response :success
+    assert_select "table.queue"
+  end
+
   test "reset clears simulated incidents" do
     sign_in
     IncidentSimulator.new.generate!(count: 2)

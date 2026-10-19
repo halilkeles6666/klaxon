@@ -92,6 +92,27 @@ class IncidentSimulator
         svc.active = true
       end
     end
+
+    ensure_oncall!
+  end
+
+  # Build a rotating on-call schedule for today (3-hour shifts) so that someone
+  # is always on call when the agent needs to page a human. Idempotent.
+  def ensure_oncall!
+    return if OnCallShift.where("ends_at > ?", Time.current).exists?
+
+    users = User.where(role: "responder").order(:id).to_a
+    users = User.order(:id).to_a if users.empty?
+    return if users.empty?
+
+    day = Time.current.beginning_of_day
+    8.times do |i| # 8 x 3h = full day
+      OnCallShift.create!(
+        user: users[i % users.size],
+        starts_at: day + (i * 3).hours,
+        ends_at: day + ((i + 1) * 3).hours
+      )
+    end
   end
 
   # Fabricate `count` incidents. Returns the created Incident records.

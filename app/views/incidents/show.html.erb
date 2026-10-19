@@ -11,6 +11,14 @@
   <%= link_to "← Kuyruk", incidents_path, class: "btn btn--ghost" %>
 </div>
 
+<% if @incident.needs_human %>
+  <div class="dedup-note" style="border-color:#dc2626;background:#fef2f2">
+    🚨 <strong>Jev çıkmaza girdi — insana devredildi.</strong>
+    O an nöbetçi olan <strong><%= @incident.paged_user&.display_name || "nöbetçi" %></strong> alarmlandı.
+    Ayrıntı için zaman çizelgesine bakın.
+  </div>
+<% end %>
+
 <% if @incident.duplicate_alerts_count.positive? %>
   <div class="dedup-note">
     🔕 Gürültü azaltıldı: aynı servis/anahtardan gelen

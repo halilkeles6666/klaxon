@@ -7,8 +7,8 @@
 # correct remediation from the incident's description — which is the whole
 # point of the experiment.
 class ActionWorld
-  CORRECT_SUCCESS = 0.95 # right action fixes it ~always
-  WRONG_SUCCESS   = 0.10 # wrong action occasionally "works" by luck
+  CORRECT_SUCCESS = 1.0  # the right remediation always fixes the root cause
+  WRONG_SUCCESS   = 0.15 # a wrong action occasionally clears it by luck
 
   def initialize(random: Random.new)
     @random = random

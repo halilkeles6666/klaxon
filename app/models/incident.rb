@@ -15,6 +15,7 @@ class Incident < ApplicationRecord
 
   belongs_to :service
   belongs_to :acknowledged_by, class_name: "User", optional: true
+  belongs_to :paged_user, class_name: "User", optional: true
   has_many :alerts, dependent: :destroy
   has_many :incident_events, -> { order(:created_at) }, dependent: :destroy
 
@@ -32,6 +33,7 @@ class Incident < ApplicationRecord
   scope :by_status, ->(s) { where(status: s) if s.present? }
   scope :newest_first, -> { order(triggered_at: :desc) }
   scope :simulated, -> { where(simulated: true) }
+  scope :needs_human, -> { where(needs_human: true) }
 
   # Simulation scoring: did the agent end up applying the action that actually
   # fixes this incident? (root_cause_action is hidden ground truth.)

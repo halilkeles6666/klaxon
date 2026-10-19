@@ -53,15 +53,17 @@ namespace :sim do
              r[:attempts], r[:outcome])
     end
 
-    resolved = rows.count { |r| r[:outcome] == :resolved }
-    correct  = rows.count { |r| r[:ok] }
-    avg_conf = rows.filter_map { |r| r[:conf] }
+    resolved  = rows.count { |r| r[:outcome] == :resolved }
+    escalated = rows.count { |r| r[:outcome] == :escalated }
+    correct   = rows.count { |r| r[:ok] }
+    avg_conf  = rows.filter_map { |r| r[:conf] }
     avg = avg_conf.any? ? (avg_conf.sum / avg_conf.size * 100).round : 0
 
     puts "-" * 104
     puts
     puts "ÖZET"
-    puts "  Çözülen           : #{resolved}/#{rows.size}  (%#{(resolved * 100.0 / rows.size).round})"
+    puts "  Ajan çözdü        : #{resolved}/#{rows.size}  (%#{(resolved * 100.0 / rows.size).round})"
+    puts "  İnsana devredildi : #{escalated}/#{rows.size}  (Jev çıkmaza girince o an nöbetçi alarmlandı)"
     puts "  Doğru kök-neden   : #{correct}/#{rows.size}  (%#{(correct * 100.0 / rows.size).round})  ← Jev'in kararı ne kadar isabetli"
     puts "  Ortalama güven    : %#{avg}"
     puts

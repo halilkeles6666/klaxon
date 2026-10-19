@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_19_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_19_130000) do
   create_table "alerts", force: :cascade do |t|
     t.integer "incident_id", null: false
     t.string "summary", null: false
@@ -78,11 +78,24 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_19_120000) do
     t.integer "resolution_attempts", default: 0, null: false
     t.string "root_cause_action"
     t.boolean "simulated", default: false, null: false
+    t.integer "paged_user_id"
+    t.boolean "needs_human", default: false, null: false
     t.index ["acknowledged_by_id"], name: "index_incidents_on_acknowledged_by_id"
+    t.index ["paged_user_id"], name: "index_incidents_on_paged_user_id"
     t.index ["reference"], name: "index_incidents_on_reference", unique: true
     t.index ["service_id", "dedup_key", "status"], name: "index_incidents_on_service_id_and_dedup_key_and_status"
     t.index ["service_id"], name: "index_incidents_on_service_id"
     t.index ["status"], name: "index_incidents_on_status"
+  end
+
+  create_table "on_call_shifts", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["starts_at", "ends_at"], name: "index_on_call_shifts_on_starts_at_and_ends_at"
+    t.index ["user_id"], name: "index_on_call_shifts_on_user_id"
   end
 
   create_table "services", force: :cascade do |t|
@@ -157,6 +170,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_19_120000) do
   add_foreign_key "incident_events", "users", column: "actor_id"
   add_foreign_key "incidents", "services"
   add_foreign_key "incidents", "users", column: "acknowledged_by_id"
+  add_foreign_key "incidents", "users", column: "paged_user_id"
+  add_foreign_key "on_call_shifts", "users"
   add_foreign_key "services", "escalation_policies"
   add_foreign_key "sessions", "users"
   add_foreign_key "tickets", "sla_policies"

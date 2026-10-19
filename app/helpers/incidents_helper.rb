@@ -16,7 +16,8 @@ module IncidentsHelper
     "agent_assessed"      => "🤖 Ajan değerlendirdi (Jev)",
     "agent_action_failed" => "⚠️ Ajan aksiyonu başarısız",
     "agent_resolved"      => "🤖 Ajan çözdü",
-    "agent_gave_up"       => "🛑 Ajan pes etti"
+    "agent_gave_up"       => "🛑 Ajan pes etti",
+    "human_paged"         => "🚨 Nöbetçi alarmlandı"
   }.freeze
 
   def status_label(status)

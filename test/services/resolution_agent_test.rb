@@ -75,7 +75,7 @@ class ResolutionAgentTest < ActiveSupport::TestCase
     assert_includes incident.incident_events.pluck(:kind), "agent_action_failed"
   end
 
-  test "gives up after MAX_ATTEMPTS when it never picks the correct action" do
+  test "pages the on-call human after MAX_ATTEMPTS when it never picks correctly" do
     incident = new_incident(root: "failover")
     # Always pick the first remaining option that is NOT the correct one.
     jev = StubJevClient.new do |_state, questions|
@@ -86,10 +86,40 @@ class ResolutionAgentTest < ActiveSupport::TestCase
 
     outcome = ResolutionAgent.new(jev: jev, world: @world).resolve!(incident)
 
-    assert_equal :unresolved, outcome
+    assert_equal :escalated, outcome
     incident.reload
     assert_not_equal "resolved", incident.status
     assert_equal ResolutionAgent::MAX_ATTEMPTS, incident.resolution_attempts
-    assert_includes incident.incident_events.pluck(:kind), "agent_gave_up"
+    assert incident.needs_human, "should be flagged for a human"
+    assert_equal OnCall.on_call_at, incident.paged_user
+    kinds = incident.incident_events.pluck(:kind)
+    assert_includes kinds, "agent_gave_up"
+    assert_includes kinds, "human_paged"
+  end
+
+  test "pages the human immediately when Jev's confidence is below the floor" do
+    incident = new_incident(root: "failover")
+    low = ResolutionAgent::CONFIDENCE_FLOOR - 0.1
+    jev = StubJevClient.new { |_s, _q| pick("restart_service", confidence: low) }
+
+    outcome = ResolutionAgent.new(jev: jev, world: @world).resolve!(incident)
+
+    assert_equal :escalated, outcome
+    incident.reload
+    assert incident.needs_human
+    assert_equal 0, incident.resolution_attempts, "should not have acted on a shaky decision"
+    assert_includes incident.incident_events.pluck(:kind), "human_paged"
+  end
+
+  test "names whoever is on call at the moment of paging" do
+    incident = new_incident(root: "failover")
+    # Put a specific user on call right now.
+    on_call = users(:admin)
+    OnCallShift.create!(user: on_call, starts_at: 1.hour.ago, ends_at: 1.hour.from_now)
+    jev = StubJevClient.new { |_s, _q| pick("restart_service", confidence: 0.1) }
+
+    ResolutionAgent.new(jev: jev, world: @world).resolve!(incident)
+
+    assert_equal on_call, incident.reload.paged_user
   end
 end

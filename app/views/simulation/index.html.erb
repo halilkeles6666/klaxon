@@ -5,7 +5,7 @@
     <h1>Otonom ajan → ajan simülasyonu</h1>
     <p class="subtle">
       Simülatör sahte arızalar üretir; çözüm ajanı her olayı <strong>Jev</strong> (TypeSafe System One)
-      ile değerlendirip otomatik çözmeye çalışır — insan müdahalesi yok.
+      ile değerlendirip otomatik çözer. Çıkmaza girerse o an nöbetçi olan insana alarm basar.
     </p>
   </div>
   <div class="transitions">
@@ -13,6 +13,7 @@
       <%= f.number_field :count, value: 5, min: 1, max: 20, class: "field" %>
       <%= f.submit "Olay üret ve ajana ver", class: "btn" %>
     <% end %>
+    <button type="button" id="live-toggle" class="btn btn--secondary">▶ Canlı mod</button>
     <% if @stats[:total].to_i.positive? %>
       <%= button_to "Temizle", reset_simulation_path, method: :post, class: "btn btn--ghost btn--sm",
             data: { turbo_confirm: "Tüm simüle olaylar silinsin mi?" } %>
@@ -23,71 +24,56 @@
 <div class="dedup-note">
   Karar motoru:
   <strong><%= @using_jev ? "GERÇEK Jev (TypeSafe System One)" : "StubJevClient (sahte — API anahtarı yok)" %></strong>.
-  <% unless @using_jev %>
-    Gerçek Jev için <code>TYPESAFE_API_KEY</code> ortam değişkenini ayarlayın.
-  <% end %>
+  <span id="live-status" class="subtle"></span>
 </div>
 
-<% if @stats[:total].to_i.positive? %>
-  <div class="card">
-    <div class="metrics">
-      <span class="metric"><span class="n"><%= @stats[:total] %></span><span class="l">toplam olay</span></span>
-      <span class="metric"><span class="n"><%= @stats[:resolved] %> <span class="subtle">/ %<%= @stats[:resolved_pct] %></span></span><span class="l">ajan çözdü</span></span>
-      <span class="metric"><span class="n"><%= @stats[:correct] %> <span class="subtle">/ %<%= @stats[:correct_pct] %></span></span><span class="l">doğru kök-neden</span></span>
-      <span class="metric"><span class="n"><%= @stats[:avg_conf] ? "%#{@stats[:avg_conf]}" : "-" %></span><span class="l">ortalama güven</span></span>
-    </div>
-    <p class="subtle" style="margin:14px 0 0">
-      "Doğru kök-neden" = ajanın seçtiği aksiyon, olayın gizli gerçek çözümüyle eşleşti mi — yani Jev'in isabeti.
-    </p>
-  </div>
-<% end %>
+<div id="board">
+  <%= render "board" %>
+</div>
 
-<% if @incidents.any? %>
-  <table class="queue">
-    <thead>
-      <tr>
-        <th>Referans</th>
-        <th>Servis</th>
-        <th>Önem</th>
-        <th>Ajan seçti</th>
-        <th>Doğru</th>
-        <th>Güven</th>
-        <th>Deneme</th>
-        <th>Durum</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @incidents.each do |incident| %>
-        <tr>
-          <td><%= link_to incident.reference, incident_path(incident), class: "ref" %></td>
-          <td class="subtle"><%= incident.service.name %></td>
-          <td>
-            <% if incident.severity %>
-              <%= ResolutionAgent::SEVERITY_LEVELS[incident.severity] %> (<%= incident.severity %>/4)
-            <% else %>—<% end %>
-          </td>
-          <td><code><%= incident.agent_action || "—" %></code></td>
-          <td>
-            <% if incident.agent_action.present? %>
-              <% if incident.agent_action_correct? %>
-                <span style="color:#16a34a;font-weight:700">✓</span>
-              <% else %>
-                <span style="color:#dc2626;font-weight:700" title="Doğrusu: <%= incident.root_cause_action %>">✗</span>
-              <% end %>
-            <% else %>—<% end %>
-          </td>
-          <td><%= incident.agent_confidence ? "%#{(incident.agent_confidence * 100).round}" : "—" %></td>
-          <td><%= incident.resolution_attempts %></td>
-          <td>
-            <%= status_pill(incident.status) %>
-            <% if incident.auto_resolved %><span class="badge-dup">otomatik</span><% end %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-<% else %>
-  <div class="card center">
-    <p class="subtle">Henüz simüle olay yok. Yukarıdan "Olay üret ve ajana ver" ile başlat.</p>
-  </div>
-<% end %>
+<script>
+  (function () {
+    var token  = document.querySelector('meta[name="csrf-token"]').content;
+    var btn    = document.getElementById('live-toggle');
+    var status = document.getElementById('live-status');
+    var live   = false;
+    var timer  = null;
+    var DELAY  = 3500; // ms between incidents
+
+    function tick() {
+      status.textContent = '· canlı: yeni olay üretiliyor…';
+      fetch('<%= tick_simulation_path %>', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': token, 'Accept': 'text/html' }
+      })
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        document.getElementById('board').innerHTML = html;
+        if (live) {
+          status.textContent = '· canlı: bir sonraki olaya ' + (DELAY / 1000) + ' sn…';
+          timer = setTimeout(tick, DELAY);
+        }
+      })
+      .catch(function () {
+        status.textContent = '· canlı mod hata aldı, durduruldu';
+        stop();
+      });
+    }
+
+    function start() {
+      live = true;
+      btn.textContent = '⏸ Canlı modu durdur';
+      btn.classList.add('btn--secondary');
+      tick();
+    }
+
+    function stop() {
+      live = false;
+      if (timer) { clearTimeout(timer); timer = null; }
+      btn.textContent = '▶ Canlı mod';
+      status.textContent = '';
+    }
+
+    btn.addEventListener('click', function () { live ? stop() : start(); });
+  })();
+</script>

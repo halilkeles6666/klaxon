@@ -40,6 +40,13 @@ class ResolutionAgent
     assessment = assess(incident)
     apply_assessment(incident, assessment)
 
+    # Safety net #1: if Jev itself is unsure, don't act recklessly — hand off
+    # to the human who is on call right now.
+    if assessment[:confidence] && assessment[:confidence] < CONFIDENCE_FLOOR
+      page_human!(incident, reason: "düşük güven (%#{pct_num(assessment[:confidence])}) — ajan riske girmedi")
+      return :escalated
+    end
+
     tried  = []
     action = assessment[:action]
 
@@ -67,12 +74,24 @@ class ResolutionAgent
       incident.update!(agent_confidence: nxt[:confidence])
     end
 
+    # Safety net #2: exhausted every remediation it could think of — dead end.
     incident.log_event("agent_gave_up",
       detail: "Ajan #{incident.resolution_attempts} denemede çözemedi; denenen: #{tried.join(', ')}.")
-    :unresolved
+    page_human!(incident, reason: "#{incident.resolution_attempts} deneme başarısız — çıkmaz")
+    :escalated
   end
 
   private
+
+  # Hand the incident to the human who is on call at this moment.
+  def page_human!(incident, reason:)
+    human = OnCall.on_call_at
+    incident.update!(needs_human: true, paged_user: human)
+    who = human&.display_name || "nöbetçi bulunamadı"
+    incident.log_event("human_paged",
+      detail: "🚨 Jev çıkmaza girdi (#{reason}); o an nöbetçi olan #{who} alarmlandı.",
+      actor: human)
+  end
 
   # One Jev request, three typed decisions at once.
   def assess(incident)
@@ -138,5 +157,9 @@ class ResolutionAgent
 
   def pct(value)
     value.nil? ? "n/a" : "#{(value * 100).round}%"
+  end
+
+  def pct_num(value)
+    value.nil? ? 0 : (value * 100).round
   end
 end
