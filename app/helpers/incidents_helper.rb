@@ -6,13 +6,17 @@ module IncidentsHelper
   URGENCY_LABELS = { "high" => "Yüksek", "low" => "Düşük" }.freeze
 
   EVENT_LABELS = {
-    "triggered"     => "Olay açıldı",
-    "alert_grouped" => "Yinelenen alarm gruplandı",
-    "escalated"     => "Yükseltildi",
-    "acknowledged"  => "Onaylandı",
-    "resolved"      => "Çözüldü",
-    "reopened"      => "Yeniden açıldı",
-    "note"          => "Not"
+    "triggered"           => "Olay açıldı",
+    "alert_grouped"       => "Yinelenen alarm gruplandı",
+    "escalated"           => "Yükseltildi",
+    "acknowledged"        => "Onaylandı",
+    "resolved"            => "Çözüldü",
+    "reopened"            => "Yeniden açıldı",
+    "note"                => "Not",
+    "agent_assessed"      => "🤖 Ajan değerlendirdi (Jev)",
+    "agent_action_failed" => "⚠️ Ajan aksiyonu başarısız",
+    "agent_resolved"      => "🤖 Ajan çözdü",
+    "agent_gave_up"       => "🛑 Ajan pes etti"
   }.freeze
 
   def status_label(status)

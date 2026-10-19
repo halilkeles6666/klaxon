@@ -8,6 +8,11 @@ Rails.application.routes.draw do
   post "alerts",                     to: "alerts#create",   as: :alerts
   get  "alerts/received/:reference", to: "alerts#received", as: :alert_received
 
+  # Autonomous agent->agent simulation dashboard (authentication required).
+  get  "simulation",       to: "simulation#index", as: :simulation
+  post "simulation/run",   to: "simulation#run",   as: :run_simulation
+  post "simulation/reset", to: "simulation#reset", as: :reset_simulation
+
   # Responder workspace (authentication required).
   resources :incidents, only: %i[index show] do
     member do

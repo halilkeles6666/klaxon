@@ -26,6 +26,7 @@
         <nav class="topnav">
           <% if current_user %>
             <%= link_to "Olaylar", incidents_path, class: "topnav__link" %>
+            <%= link_to "Simülasyon", simulation_path, class: "topnav__link" %>
             <%= link_to "Alarm gönder", new_alert_path, class: "topnav__link" %>
             <span class="topnav__user"><%= current_user.display_name %></span>
             <%= button_to "Çıkış", session_path, method: :delete, class: "btn btn--ghost btn--sm" %>

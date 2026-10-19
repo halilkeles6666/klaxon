@@ -31,6 +31,13 @@ class Incident < ApplicationRecord
   scope :triggered, -> { where(status: "triggered") }
   scope :by_status, ->(s) { where(status: s) if s.present? }
   scope :newest_first, -> { order(triggered_at: :desc) }
+  scope :simulated, -> { where(simulated: true) }
+
+  # Simulation scoring: did the agent end up applying the action that actually
+  # fixes this incident? (root_cause_action is hidden ground truth.)
+  def agent_action_correct?
+    root_cause_action.present? && agent_action == root_cause_action
+  end
 
   # ---- Alert ingestion + deduplication (noise reduction) -----------------
   #

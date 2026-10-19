@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_15_120400) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_19_120000) do
   create_table "alerts", force: :cascade do |t|
     t.integer "incident_id", null: false
     t.string "summary", null: false
@@ -71,6 +71,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_15_120400) do
     t.integer "alerts_count", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "severity"
+    t.string "agent_action"
+    t.float "agent_confidence"
+    t.boolean "auto_resolved", default: false, null: false
+    t.integer "resolution_attempts", default: 0, null: false
+    t.string "root_cause_action"
+    t.boolean "simulated", default: false, null: false
     t.index ["acknowledged_by_id"], name: "index_incidents_on_acknowledged_by_id"
     t.index ["reference"], name: "index_incidents_on_reference", unique: true
     t.index ["service_id", "dedup_key", "status"], name: "index_incidents_on_service_id_and_dedup_key_and_status"
