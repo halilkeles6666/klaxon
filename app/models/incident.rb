@@ -41,6 +41,12 @@ class Incident < ApplicationRecord
     root_cause_action.present? && agent_action == root_cause_action
   end
 
+  # A free-text incident the user submitted themselves: simulated (so it shows
+  # on the dashboard) but with no hidden ground truth to score against.
+  def user_provided?
+    simulated? && root_cause_action.blank?
+  end
+
   # ---- Alert ingestion + deduplication (noise reduction) -----------------
   #
   # Monitoring tools fire an alert per check, so a single outage can emit

@@ -44,6 +44,20 @@ class SimulationTest < ActionDispatch::IntegrationTest
     assert_select "table.queue"
   end
 
+  test "submit lets the agent solve a user-provided incident" do
+    sign_in
+    incident = nil
+    assert_difference -> { Incident.count }, 1 do
+      post submit_simulation_path, params: {
+        service_id: services(:payments).id, title: "Benim arızam", details: "detay", urgency: "high"
+      }
+      incident = Incident.order(:created_at).last
+    end
+    assert incident.user_provided?, "should be flagged as user-provided (no ground truth)"
+    assert incident.agent_action.present?, "agent should have chosen an action"
+    assert_redirected_to incident_path(incident)
+  end
+
   test "reset clears simulated incidents" do
     sign_in
     IncidentSimulator.new.generate!(count: 2)

@@ -27,6 +27,35 @@
   <span id="live-status" class="subtle"></span>
 </div>
 
+<div class="card">
+  <h2 style="font-size:16px;margin:0 0 12px">Kendi olayını çözdür</h2>
+  <p class="subtle" style="margin:0 0 12px">
+    Bir arıza yaz; ajan onu Jev ile değerlendirip bir aksiyon seçsin ve çözsün.
+    (Çözüp çözemediğini de Jev değerlendirir — bu olayların gizli "doğru cevabı" yoktur.)
+  </p>
+  <%= form_with url: submit_simulation_path, method: :post do |f| %>
+    <div class="form-row">
+      <div class="field">
+        <%= f.label :service_id, "Servis" %>
+        <%= f.select :service_id, @services.map { |s| [ s.name, s.id ] } %>
+      </div>
+      <div class="field">
+        <%= f.label :urgency, "Aciliyet" %>
+        <%= f.select :urgency, [ [ "Yüksek", "high" ], [ "Düşük", "low" ] ] %>
+      </div>
+    </div>
+    <div class="field">
+      <%= f.label :title, "Olay başlığı" %>
+      <%= f.text_field :title, placeholder: "ör. Ödeme servisi son dağıtımdan sonra 500 veriyor", required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :details, "Ayrıntı (Jev'in okuyacağı durum)" %>
+      <%= f.text_area :details, rows: 3, placeholder: "ör. /charge üzerinde %20 hata, 14:02 deploy'undan hemen sonra; gecikme ve kaynak normal." %>
+    </div>
+    <%= f.submit "Ajana ver ve çözdür", class: "btn" %>
+  <% end %>
+</div>
+
 <div id="board">
   <%= render "board" %>
 </div>

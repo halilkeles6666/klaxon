@@ -4,7 +4,7 @@
       <span class="metric"><span class="n"><%= @stats[:total] %></span><span class="l">toplam olay</span></span>
       <span class="metric"><span class="n"><%= @stats[:resolved] %> <span class="subtle">/ %<%= @stats[:resolved_pct] %></span></span><span class="l">ajan çözdü</span></span>
       <span class="metric"><span class="n"><%= @stats[:escalated] %></span><span class="l">🚨 insana devredildi</span></span>
-      <span class="metric"><span class="n"><%= @stats[:correct] %> <span class="subtle">/ %<%= @stats[:correct_pct] %></span></span><span class="l">doğru kök-neden</span></span>
+      <span class="metric"><span class="n"><%= @stats[:correct] %><% if @stats[:correct_pct] %> <span class="subtle">/ %<%= @stats[:correct_pct] %></span><% end %></span><span class="l">doğru kök-neden<% if @stats[:scored].to_i < @stats[:total].to_i %> <span class="subtle">(sim. <%= @stats[:scored] %>)</span><% end %></span></span>
       <span class="metric"><span class="n"><%= @stats[:avg_conf] ? "%#{@stats[:avg_conf]}" : "-" %></span><span class="l">ortalama güven</span></span>
     </div>
     <p class="subtle" style="margin:14px 0 0">
@@ -31,20 +31,23 @@
     <tbody>
       <% @incidents.each do |incident| %>
         <tr>
-          <td><%= link_to incident.reference, incident_path(incident), class: "ref" %></td>
+          <td>
+            <%= link_to incident.reference, incident_path(incident), class: "ref" %>
+            <% if incident.user_provided? %><span class="badge-dup">senin</span><% end %>
+          </td>
           <td class="subtle"><%= incident.service.name %></td>
           <td>
             <% if incident.severity %><%= ResolutionAgent::SEVERITY_LEVELS[incident.severity] %> (<%= incident.severity %>/4)<% else %>—<% end %>
           </td>
           <td><code><%= incident.agent_action || "—" %></code></td>
           <td>
-            <% if incident.agent_action.present? %>
-              <% if incident.agent_action_correct? %>
-                <span style="color:#16a34a;font-weight:700">✓</span>
-              <% else %>
-                <span style="color:#dc2626;font-weight:700" title="Doğrusu: <%= incident.root_cause_action %>">✗</span>
-              <% end %>
-            <% else %>—<% end %>
+            <% if incident.root_cause_action.blank? %>
+              <span class="subtle" title="Kullanıcının verdiği olay — gizli doğru cevap yok">—</span>
+            <% elsif incident.agent_action_correct? %>
+              <span style="color:#16a34a;font-weight:700">✓</span>
+            <% else %>
+              <span style="color:#dc2626;font-weight:700" title="Doğrusu: <%= incident.root_cause_action %>">✗</span>
+            <% end %>
           </td>
           <td><%= incident.agent_confidence ? "%#{(incident.agent_confidence * 100).round}" : "—" %></td>
           <td><%= incident.resolution_attempts %></td>
