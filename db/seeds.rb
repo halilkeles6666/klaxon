@@ -27,6 +27,20 @@ responder.update!(name: "Demo Responder", role: "responder", password: "password
 admin = User.find_or_initialize_by(email_address: "admin@klaxon.test")
 admin.update!(name: "Demo Admin", role: "admin", password: "password", password_confirmation: "password")
 
+# On-call engineers for the rotation — the autonomous agent pages whoever is
+# on call when it hits a dead end. Set telegram_chat_id (console or Telegram
+# setup) to receive the alert over Telegram.
+{
+  "ayse@klaxon.test"   => "Ayşe Yılmaz",
+  "mehmet@klaxon.test" => "Mehmet Demir",
+  "zeynep@klaxon.test" => "Zeynep Kaya",
+  "can@klaxon.test"    => "Can Öztürk"
+}.each do |email, full_name|
+  User.find_or_initialize_by(email_address: email)
+      .update!(name: full_name, role: "responder",
+               password: "password", password_confirmation: "password")
+end
+
 if Incident.count.zero?
   payments = Service.find_by!(routing_key: "payments-api")
   web      = Service.find_by!(routing_key: "web-frontend")

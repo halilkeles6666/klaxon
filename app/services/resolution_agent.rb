@@ -26,10 +26,12 @@ class ResolutionAgent
   CONFIDENCE_FLOOR = 0.40 # below this the agent flags the decision as shaky
   MAX_ATTEMPTS     = 3
 
-  def initialize(jev: JevClient.new, world: ActionWorld.new, logger: Rails.logger)
-    @jev    = jev
-    @world  = world
-    @logger = logger
+  def initialize(jev: JevClient.new, world: ActionWorld.new,
+                 notifier: TelegramNotifier.new, logger: Rails.logger)
+    @jev      = jev
+    @world    = world
+    @notifier = notifier
+    @logger   = logger
   end
 
   # Drives one incident from triggered to resolved (or gives up).
@@ -83,14 +85,37 @@ class ResolutionAgent
 
   private
 
-  # Hand the incident to the human who is on call at this moment.
+  # Hand the incident to the human who is on call at this moment, and alert
+  # them over Telegram if configured.
   def page_human!(incident, reason:)
     human = OnCall.on_call_at
     incident.update!(needs_human: true, paged_user: human)
     who = human&.display_name || "nöbetçi bulunamadı"
+
+    delivery = @notifier.notify(user: human, text: alert_text(incident, human, reason))
+    suffix = {
+      sent: " (Telegram: gönderildi ✓)",
+      skipped: " (Telegram: ayarlı değil)",
+      error: " (Telegram: gönderilemedi)"
+    }[delivery]
+
     incident.log_event("human_paged",
-      detail: "🚨 Jev çıkmaza girdi (#{reason}); o an nöbetçi olan #{who} alarmlandı.",
+      detail: "🚨 Jev çıkmaza girdi (#{reason}); o an nöbetçi olan #{who} alarmlandı.#{suffix}",
       actor: human)
+  end
+
+  def alert_text(incident, human, reason)
+    name = human&.display_name.to_s.split.first.presence || "Nöbetçi"
+    <<~MSG.strip
+      🚨 ALERT ALERT 🚨
+      #{name}, Jev bu olayı çözemedi — sıra sende.
+
+      Olay: #{incident.reference} — #{incident.title}
+      Servis: #{incident.service.name}
+      Önem: #{SEVERITY_LEVELS[incident.severity.to_i]} (#{incident.severity}/4)
+      Sebep: #{reason}
+      Son denenen aksiyon: #{incident.agent_action}
+    MSG
   end
 
   # One Jev request, three typed decisions at once.

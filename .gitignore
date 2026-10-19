@@ -35,3 +35,6 @@
 
 # Ignore the TypeSafe/Jev API key (local only, never committed).
 /config/typesafe.key
+
+# Ignore the Telegram bot token (local only, never committed).
+/config/telegram.key

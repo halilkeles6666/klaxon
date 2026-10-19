@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_19_130000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_20_120000) do
   create_table "alerts", force: :cascade do |t|
     t.integer "incident_id", null: false
     t.string "summary", null: false
@@ -160,6 +160,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_19_130000) do
     t.string "role", default: "agent", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "telegram_chat_id"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 
