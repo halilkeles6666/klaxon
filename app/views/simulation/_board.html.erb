@@ -49,12 +49,14 @@
           <td><%= incident.agent_confidence ? "%#{(incident.agent_confidence * 100).round}" : "—" %></td>
           <td><%= incident.resolution_attempts %></td>
           <td>
-            <% if incident.needs_human %>
+            <% if incident.status == "resolved" %>
+              <%= status_pill("resolved") %>
+              <% if incident.auto_resolved %><span class="badge-dup">otomatik</span><% end %>
+            <% elsif incident.needs_human %>
               <span class="pill pill--triggered">🚨 insana devredildi</span>
               <span class="subtle"><%= incident.paged_user&.display_name %></span>
             <% else %>
               <%= status_pill(incident.status) %>
-              <% if incident.auto_resolved %><span class="badge-dup">otomatik</span><% end %>
             <% end %>
           </td>
         </tr>

@@ -70,6 +70,71 @@ class IncidentSimulator
         "Primary'ye bağlantılar reddediliyor; hazırda bekleyen replica promote edilmeyi bekliyor.",
         "Birincil bölge erişilemez durumda; ikincil bölge çalışır vaziyette."
       ]
+    },
+    {
+      service: "search-api", urgency: "high", root_cause: "scale_up",
+      titles: [
+        "Arama API'si yavaşladı",
+        "Arama sorguları zaman aşımına uğruyor",
+        "Arama gecikmesi tırmanıyor"
+      ],
+      summaries: [
+        "Yeniden indeksleme yükü altında sorgu gecikmesi p95 3.1s'ye çıktı; düğümler doygun, hata yok.",
+        "Trafik 2 katına çıkınca arama kümesi yetmedi; CPU %92, kod değişmedi.",
+        "Yük artışıyla eşzamanlı sorgular birikti; daha fazla kapasite gerekiyor."
+      ]
+    },
+    {
+      service: "billing-worker", urgency: "low", root_cause: "clear_queue",
+      titles: [
+        "Faturalama işçisi takıldı",
+        "Fatura işleri kuyruğu birikti",
+        "Ödeme mutabakatı gecikiyor"
+      ],
+      summaries: [
+        "Zehirli bir iş kuyruğu durdurdu; 9 bin fatura işi bekliyor, işçi ilerlemiyor.",
+        "Kuyrukta hatalı bir mesaj işçiyi tıkadı; temizlenince akış düzelir.",
+        "Birikmiş iş kuyruğu yüzünden faturalar gecikiyor; kaynak ve kod sağlıklı."
+      ]
+    },
+    {
+      service: "cdn-edge", urgency: "high", root_cause: "rollback_deploy",
+      titles: [
+        "CDN kenarında köken hataları",
+        "Statik içerik 5xx dönüyor",
+        "Edge yapılandırması sonrası hatalar"
+      ],
+      summaries: [
+        "Yeni edge yapılandırması yayınlandıktan sonra %20 köken hatası; önceki yapılandırmada sorun yoktu.",
+        "Son config push sonrası önbellek kuralları bozuldu; geri almak düzeltir.",
+        "Edge dağıtımı hatalı; trafik ve kaynak normal, sorun yeni sürümde."
+      ]
+    },
+    {
+      service: "inventory-db", urgency: "high", root_cause: "failover",
+      titles: [
+        "Envanter veritabanı birincil düğümü düştü",
+        "Inventory DB erişilemez",
+        "Stok veritabanı bağlantıları kopuyor"
+      ],
+      summaries: [
+        "Birincil envanter DB düğümü çöktü; sağlıklı replika promote edilmeyi bekliyor.",
+        "Primary erişilemez, bağlantılar reddediliyor; ikincil düğüm güncel.",
+        "Birincil düğüm donanım hatası verdi; replikaya geçiş gerekiyor."
+      ]
+    },
+    {
+      service: "notification-svc", urgency: "low", root_cause: "restart_service",
+      titles: [
+        "Bildirim servisi yanıt vermiyor",
+        "Push bildirim süreci takıldı",
+        "Bildirim gönderimi durdu"
+      ],
+      summaries: [
+        "Bildirim süreci bellek sızıntısıyla yanıt veremez oldu; dağıtım yok, trafik normal.",
+        "Servis deadlock'a girdi; thread havuzu dolu, yeniden başlatma gerekiyor.",
+        "Süreç zombi durumda; kaynak/kod değişmeden yeniden başlatma yeterli."
+      ]
     }
   ].freeze
 
