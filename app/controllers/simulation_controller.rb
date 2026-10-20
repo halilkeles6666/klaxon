@@ -61,6 +61,22 @@ class SimulationController < ApplicationController
     redirect_to simulation_path, alert: "Jev hatası: #{e.message}"
   end
 
+  # Real end-to-end loop against the fake store (Nimbus): generate real traffic
+  # -> monitor detects breaches from telemetry -> agent asks Jev -> applies the
+  # remediation to the live store (removes the fault) -> re-checks. "Resolved"
+  # means the store component actually recovered; unfixable -> page the human.
+  def scan_store
+    StoreBackend.ensure_components!
+    StoreTraffic.generate!(hits: 30)
+    incidents = StoreMonitor.new.detect!
+    agent = build_agent(world: StoreWorld.new)
+    incidents.each { |incident| agent.resolve!(incident) }
+    redirect_to simulation_path,
+      notice: "Mağaza tarandı: #{incidents.size} arıza saptandı, ajana verildi."
+  rescue JevClient::Error => e
+    redirect_to simulation_path, alert: "Jev hatası: #{e.message}"
+  end
+
   def reset
     Incident.simulated.destroy_all
     redirect_to simulation_path, notice: "Simüle olaylar temizlendi."

@@ -16,6 +16,7 @@
       <%= f.submit "Olay üret ve ajana ver", class: "btn" %>
     <% end %>
     <button type="button" id="live-toggle" class="btn btn--secondary">▶ Canlı mod</button>
+    <%= button_to "🛒 Mağazayı tara ve çöz", scan_store_simulation_path, method: :post, class: "btn btn--secondary" %>
     <% if @stats[:total].to_i.positive? %>
       <%= button_to "Temizle", reset_simulation_path, method: :post, class: "btn btn--ghost btn--sm",
             data: { turbo_confirm: "Tüm simüle olaylar silinsin mi?" } %>

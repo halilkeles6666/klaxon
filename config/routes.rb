@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   post "simulation/run",    to: "simulation#run",    as: :run_simulation
   post "simulation/tick",   to: "simulation#tick",   as: :tick_simulation
   post "simulation/submit", to: "simulation#submit", as: :submit_simulation
+  post "simulation/scan_store", to: "simulation#scan_store", as: :scan_store_simulation
   post "simulation/reset", to: "simulation#reset", as: :reset_simulation
 
   # Responder workspace (authentication required).
@@ -24,6 +25,15 @@ Rails.application.routes.draw do
     end
     resources :notes, only: :create
   end
+
+  # Fake company store (Nimbus) — a real, browsable site that genuinely faults.
+  get  "magaza",           to: "store#index",    as: :store
+  get  "magaza/urun/:id",  to: "store#product",  as: :store_product
+  post "magaza/odeme",     to: "store#checkout",  as: :store_checkout
+  get  "magaza/panel",     to: "store#panel",     as: :store_panel
+  post "magaza/panel/ariza",  to: "store#inject",  as: :store_inject
+  post "magaza/panel/duzelt", to: "store#clear",   as: :store_clear
+  post "magaza/panel/trafik", to: "store#traffic", as: :store_traffic
 
   # Health check for load balancers / Render.
   get "up" => "rails/health#show", as: :rails_health_check

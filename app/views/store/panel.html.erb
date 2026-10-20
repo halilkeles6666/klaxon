@@ -1,0 +1,52 @@
+<% content_for :title, "Nimbus — Durum paneli" %>
+
+<div class="page-head">
+  <div>
+    <h1>Nimbus durum paneli</h1>
+    <p class="subtle">Bileşenlere arıza enjekte et, trafik üret, canlı telemetriyi gör. Klaxon bu telemetriyi izleyip arızayı saptar ve ajan çözer.</p>
+  </div>
+  <div class="transitions">
+    <%= button_to "Trafik üret (telemetri)", store_traffic_path, method: :post, class: "btn btn--secondary" %>
+    <%= button_to "🤖 Klaxon ile tara ve çöz", scan_store_simulation_path, method: :post, class: "btn" %>
+  </div>
+</div>
+
+<table class="queue">
+  <thead>
+    <tr><th>Bileşen</th><th>İstek</th><th>Hata oranı</th><th>p95</th><th>Durum</th><th>Arıza enjekte et</th></tr>
+  </thead>
+  <tbody>
+    <% @components.each do |key, name| %>
+      <% s = @stats[key]; fault = @faults[key] %>
+      <tr>
+        <td><strong><%= name %></strong><br><span class="subtle"><code><%= key %></code></span></td>
+        <td><%= s ? s[:count] : "—" %></td>
+        <td>
+          <% if s %>
+            <span class="<%= s[:error_rate] >= 5 ? 'prio prio--high' : 'subtle' %>">%<%= s[:error_rate] %></span>
+          <% else %>—<% end %>
+        </td>
+        <td><%= s ? "#{s[:p95_ms]}ms" : "—" %></td>
+        <td>
+          <% if fault %>
+            <span class="pill pill--triggered"><%= fault.fault %></span>
+            <%= button_to "düzelt", store_clear_path(component: key), method: :post, class: "btn btn--ghost btn--sm" %>
+          <% else %>
+            <span class="pill pill--resolved">sağlıklı</span>
+          <% end %>
+        </td>
+        <td>
+          <div class="transitions">
+            <% @faults_catalog.each do |f| %>
+              <%= button_to f, store_inject_path(component: key, fault: f), method: :post, class: "btn btn--secondary btn--sm" %>
+            <% end %>
+          </div>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<p class="subtle" style="margin-top:14px">
+  İpucu: bir bileşene arıza enjekte et → <%= link_to "mağazayı", store_path %> gez (gerçekten bozulduğunu gör) → "Trafik üret" → sonra Klaxon <%= link_to "Simülasyon panosundan", simulation_path %> saptayıp çözsün.
+</p>

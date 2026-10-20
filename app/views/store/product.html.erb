@@ -1,0 +1,13 @@
+<% content_for :title, @product[:name] %>
+
+<%= link_to "← Vitrin", store_path, class: "subtle" %>
+
+<div class="store-detail">
+  <div class="store-detail__img"><%= @product[:emoji] %></div>
+  <div class="store-detail__info">
+    <h1><%= @product[:name] %></h1>
+    <p class="store-detail__price"><%= @product[:price] %></p>
+    <p class="subtle">Nimbus garantisi · 2 yıl · ücretsiz kargo. Stoklarla sınırlıdır.</p>
+    <%= button_to "Hemen satın al", store_checkout_path, method: :post, class: "btn" %>
+  </div>
+</div>

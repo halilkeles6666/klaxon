@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_20_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_20_140000) do
   create_table "alerts", force: :cascade do |t|
     t.integer "incident_id", null: false
     t.string "summary", null: false
@@ -98,6 +98,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_120000) do
     t.index ["user_id"], name: "index_on_call_shifts_on_user_id"
   end
 
+  create_table "request_logs", force: :cascade do |t|
+    t.string "component", null: false
+    t.string "path", null: false
+    t.integer "status", null: false
+    t.integer "latency_ms", null: false
+    t.datetime "created_at", null: false
+    t.index ["component", "created_at"], name: "index_request_logs_on_component_and_created_at"
+  end
+
   create_table "services", force: :cascade do |t|
     t.string "name", null: false
     t.string "routing_key", null: false
@@ -116,6 +125,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "site_faults", force: :cascade do |t|
+    t.string "component", null: false
+    t.string "fault", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["component"], name: "index_site_faults_on_component", unique: true
   end
 
   create_table "sla_policies", force: :cascade do |t|

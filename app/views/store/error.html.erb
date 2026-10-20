@@ -1,0 +1,10 @@
+<% content_for :title, "Bir sorun oluştu" %>
+
+<div class="store-error">
+  <div class="store-error__code"><%= @status %></div>
+  <h1>Bir şeyler ters gitti 😕</h1>
+  <p class="subtle">
+    İşlemin şu anda tamamlanamıyor. Ekibimiz durumdan haberdar; lütfen birazdan tekrar dene.
+  </p>
+  <%= link_to "Vitrine dön", store_path, class: "btn btn--ghost" %>
+</div>

@@ -203,6 +203,36 @@ body {
 .check-circle--ok { background: var(--ok-bg); color: var(--ok); }
 .check-circle--grouped { background: var(--warn-bg); color: var(--warn); }
 
+/* ---- Fake store (Nimbus) ---- */
+.store-body { background: var(--bg); }
+.store-top { background: var(--surface); border-bottom: 1px solid var(--border); }
+.store-top__inner { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+.store-brand { font-size: 22px; font-weight: 800; letter-spacing: -.02em; text-decoration: none; color: var(--text); }
+.store-brand__mark { color: var(--primary); }
+.store-nav { display: flex; gap: 18px; }
+.store-nav__link { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; }
+.store-nav__link:hover { color: var(--primary); }
+.store-main { padding: 26px 16px 56px; min-height: calc(100vh - 170px); }
+.store-foot { border-top: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px; padding: 18px 0; }
+
+.store-hero { padding: 10px 0 22px; }
+.store-hero h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -.02em; }
+
+.store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+.store-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; text-align: center; box-shadow: var(--shadow); }
+.store-card__img { font-size: 46px; }
+.store-card__name { font-weight: 600; margin: 10px 0 4px; font-size: 14px; }
+.store-card__price { color: var(--primary); font-weight: 700; margin-bottom: 12px; }
+
+.store-detail { display: flex; gap: 28px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-top: 12px; box-shadow: var(--shadow); flex-wrap: wrap; }
+.store-detail__img { font-size: 90px; }
+.store-detail__info { flex: 1 1 260px; }
+.store-detail__info h1 { margin: 0 0 6px; font-size: 24px; }
+.store-detail__price { color: var(--primary); font-weight: 800; font-size: 22px; margin: 0 0 10px; }
+
+.store-done, .store-error { max-width: 520px; margin: 40px auto; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 36px; box-shadow: var(--shadow); }
+.store-error__code { font-size: 46px; font-weight: 800; color: var(--danger); letter-spacing: .04em; }
+
 /* Stat tiles */
 .metrics { display: flex; gap: 14px; flex-wrap: wrap; }
 .metric { display: inline-flex; flex-direction: column; gap: 3px; min-width: 120px; flex: 1 1 120px; padding: 14px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; }

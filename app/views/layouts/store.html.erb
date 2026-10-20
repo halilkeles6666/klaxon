@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Nimbus" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  </head>
+  <body class="store-body">
+    <header class="store-top">
+      <div class="container store-top__inner">
+        <%= link_to store_path, class: "store-brand" do %>
+          <span class="store-brand__mark">◆</span> Nimbus
+        <% end %>
+        <nav class="store-nav">
+          <%= link_to "Vitrin", store_path, class: "store-nav__link" %>
+          <%= link_to "Sepet", "#", class: "store-nav__link" %>
+          <%= link_to "Durum paneli", store_panel_path, class: "store-nav__link" %>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container store-main">
+      <% if notice %><div class="flash flash--notice"><%= notice %></div><% end %>
+      <% if alert %><div class="flash flash--alert"><%= alert %></div><% end %>
+      <%= yield %>
+    </main>
+
+    <footer class="store-foot">
+      <div class="container">Nimbus · online mağaza · <span class="subtle">(Klaxon demosu için kurgusal bir firmadır)</span></div>
+    </footer>
+  </body>
+</html>

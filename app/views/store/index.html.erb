@@ -1,0 +1,17 @@
+<% content_for :title, "Nimbus — Vitrin" %>
+
+<section class="store-hero">
+  <h1>Teknolojiyi yanında taşı.</h1>
+  <p class="subtle">Nimbus seçkisiyle en sevilen cihazlar, hızlı kargoyla kapında.</p>
+</section>
+
+<div class="store-grid">
+  <% @products.each do |product| %>
+    <div class="store-card">
+      <div class="store-card__img"><%= product[:emoji] %></div>
+      <div class="store-card__name"><%= product[:name] %></div>
+      <div class="store-card__price"><%= product[:price] %></div>
+      <%= link_to "İncele", store_product_path(product[:id]), class: "btn btn--sm" %>
+    </div>
+  <% end %>
+</div>
