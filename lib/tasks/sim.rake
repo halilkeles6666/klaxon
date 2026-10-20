@@ -13,17 +13,20 @@ namespace :sim do
 
     using_jev = ENV["TYPESAFE_API_KEY"].to_s.strip.present?
     jev   = using_jev ? JevClient.new : StubJevClient.new
-    world = ActionWorld.new(random: seed ? Random.new(seed) : Random.new)
+    rng   = seed ? Random.new(seed) : Random.new
+
+    IncidentSimulator.new.ensure_services!
+    world = SimulatedWorld.new(random: rng)
     agent = ResolutionAgent.new(jev: jev, world: world)
-    sim   = IncidentSimulator.new(random: seed ? Random.new(seed) : Random.new)
 
     puts "=" * 72
-    puts "KLAXON — otonom ajan->ajan simülasyonu"
+    puts "KLAXON — gerçek dünya kapalı-döngü (arıza→sapta→Jev→uygula→ölç)"
     puts "Karar motoru: #{using_jev ? 'GERÇEK Jev (TypeSafe System One)' : 'StubJevClient (sahte)'}"
-    puts "Üretilecek olay: #{count}#{seed ? "  (seed #{seed})" : ''}"
+    puts "Üretilecek arıza: #{count}#{seed ? "  (seed #{seed})" : ''}"
     puts "=" * 72
 
-    incidents = sim.generate!(count: count)
+    world.inject_random_faults!(count)
+    incidents = WorldMonitor.new(world).detect!
 
     rows = incidents.map do |incident|
       outcome = agent.resolve!(incident)

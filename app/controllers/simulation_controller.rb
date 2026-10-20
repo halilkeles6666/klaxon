@@ -14,18 +14,19 @@ class SimulationController < ApplicationController
     load_board
   end
 
+  # Real closed loop: break real services -> monitor detects from metrics ->
+  # agent asks Jev -> applies the remediation to the live world -> health is
+  # re-measured. "Resolved" means the service actually recovered.
   def run
     count = params.fetch(:count, 5).to_i.clamp(1, 20)
-    agent = build_agent
-    IncidentSimulator.new.generate!(count: count).each { |i| agent.resolve!(i) }
-    redirect_to simulation_path, notice: "#{count} olay üretildi ve ajana verildi."
+    incidents = detect_and_resolve!(count)
+    redirect_to simulation_path, notice: "#{incidents.size} gerçek arıza üretildi, saptandı ve ajana verildi."
   rescue JevClient::Error => e
     redirect_to simulation_path, alert: "Jev hatası: #{e.message}"
   end
 
   def tick
-    incident = IncidentSimulator.new.generate!(count: 1).first
-    build_agent.resolve!(incident)
+    detect_and_resolve!(1)
     load_board
     render partial: "simulation/board"
   rescue JevClient::Error => e
@@ -66,6 +67,18 @@ class SimulationController < ApplicationController
   end
 
   private
+
+  # Inject faults into a fresh live world, let the monitor detect them, and let
+  # the agent resolve each against that same world (so health feedback is real).
+  def detect_and_resolve!(count)
+    IncidentSimulator.new.ensure_services! # services + on-call exist
+    world = SimulatedWorld.new
+    world.inject_random_faults!(count)
+    incidents = WorldMonitor.new(world).detect!
+    agent = build_agent(world: world)
+    incidents.each { |incident| agent.resolve!(incident) }
+    incidents
+  end
 
   def build_jev
     ENV["TYPESAFE_API_KEY"].to_s.strip.present? ? JevClient.new : StubJevClient.new
