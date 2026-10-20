@@ -38,6 +38,7 @@ Rails.application.routes.draw do
   # Public JSON ingest for external systems (the live Nimbus store) to report
   # incidents by routing_key.
   post "api/alerts", to: "api/alerts#create"
+  post "api/telemetry", to: "api/telemetry#create"
 
   # Health check for load balancers / Render.
   get "up" => "rails/health#show", as: :rails_health_check
