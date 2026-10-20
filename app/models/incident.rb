@@ -55,11 +55,12 @@ class Incident < ApplicationRecord
   # (service, dedup_key) into the one incident that is still open.
   #
   # Returns [incident, :created | :grouped].
-  def self.ingest(service:, dedup_key:, title:, summary: nil, urgency: "high", source: nil, now: Time.current)
+  def self.ingest(service:, dedup_key:, title:, summary: nil, urgency: "high", source: nil,
+                  now: Time.current, deduper: Deduper.default)
     key = dedup_key.to_s.strip.downcase.presence || title.to_s.parameterize.presence || "alert"
     summary ||= title
 
-    existing = service.incidents.open.find_by(dedup_key: key)
+    existing = deduper.find_match(service: service, title: title, summary: summary, key: key)
     if existing
       existing.alerts.create!(summary: summary, source: source, deduplicated: true)
       existing.log_event("alert_grouped",
