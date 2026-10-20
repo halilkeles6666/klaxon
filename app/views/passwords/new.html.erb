@@ -1,8 +1,21 @@
-<h1>Forgot your password?</h1>
+<% content_for :title, "Şifre sıfırlama" %>
 
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
+<div class="card auth-card">
+  <div class="center" style="margin-bottom:16px">
+    <%= render "shared/logo" %>
+    <h1 style="margin:10px 0 2px;font-size:20px">Şifre sıfırlama</h1>
+    <p class="subtle" style="margin:0">E-posta adresinizi girin; size bir sıfırlama bağlantısı göndereceğiz.</p>
+  </div>
 
-<%= form_with url: passwords_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.submit "Email reset instructions" %>
-<% end %>
+  <%= form_with url: passwords_path do |form| %>
+    <div class="field">
+      <%= form.label :email_address, "E-posta" %>
+      <%= form.email_field :email_address, required: true, autofocus: true,
+            autocomplete: "username", placeholder: "ornek@site.com", value: params[:email_address] %>
+    </div>
+    <div class="form-actions">
+      <%= form.submit "Sıfırlama bağlantısı gönder", class: "btn" %>
+      <%= link_to "Giriş yap", new_session_path, class: "subtle" %>
+    </div>
+  <% end %>
+</div>

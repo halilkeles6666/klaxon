@@ -12,7 +12,7 @@
 </div>
 
 <% if @incident.needs_human %>
-  <div class="dedup-note" style="border-color:#dc2626;background:#fef2f2">
+  <div class="dedup-note dedup-note--danger">
     🚨 <strong>Jev çıkmaza girdi — insana devredildi.</strong>
     O an nöbetçi olan <strong><%= @incident.paged_user&.display_name || "nöbetçi" %></strong> alarmlandı.
     Ayrıntı için zaman çizelgesine bakın.

@@ -2,21 +2,30 @@
 
 <div class="auth-card card center" style="max-width:520px">
   <% if @outcome == "grouped" %>
-    <h1 style="font-size:20px;margin:0 0 4px">Alarm mevcut olaya gruplandı 🔕</h1>
-    <p class="subtle">
-      Bu servis/anahtar için zaten açık bir olay vardı. Yeni çağrı göndermek yerine
-      alarm o olaya eklendi (gürültü azaltma).
-    </p>
+    <div class="check-circle check-circle--grouped">🔕</div>
+    <p><span class="pill pill--acknowledged">Mevcut olaya gruplandı</span></p>
   <% else %>
-    <h1 style="font-size:20px;margin:0 0 4px">Yeni olay açıldı 🚨</h1>
-    <p class="subtle">Alarm bir olay oluşturdu ve görevli kuyruğuna düştü.</p>
+    <div class="check-circle check-circle--ok">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 6 9 17l-5-5"/>
+      </svg>
+    </div>
+    <p><span class="pill pill--resolved">Yeni olay açıldı</span></p>
   <% end %>
 
-  <p class="big-ref"><%= @incident.reference %></p>
+  <p class="big-ref" style="margin:10px 0 4px"><%= @incident.reference %></p>
+  <p class="subtle" style="margin-top:0">
+    <% if @outcome == "grouped" %>
+      Aynı servis/anahtar için zaten açık bir olay vardı; yeni çağrı göndermek yerine
+      alarm o olaya eklendi (gürültü azaltma).
+    <% else %>
+      Alarm başarıyla işlendi ve görevli kuyruğuna düştü.
+    <% end %>
+  </p>
   <p class="subtle"><%= @incident.title %> · <%= @incident.service.name %></p>
 
   <div class="form-actions" style="justify-content:center">
     <%= link_to "Başka alarm gönder", new_alert_path, class: "btn btn--ghost" %>
-    <%= link_to "Görevli girişi", new_session_path, class: "btn" %>
+    <%= link_to "Görevli paneline git", new_session_path, class: "btn" %>
   </div>
 </div>
