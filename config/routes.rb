@@ -35,6 +35,10 @@ Rails.application.routes.draw do
   post "magaza/panel/duzelt", to: "store#clear",   as: :store_clear
   post "magaza/panel/trafik", to: "store#traffic", as: :store_traffic
 
+  # Public JSON ingest for external systems (the live Nimbus store) to report
+  # incidents by routing_key.
+  post "api/alerts", to: "api/alerts#create"
+
   # Health check for load balancers / Render.
   get "up" => "rails/health#show", as: :rails_health_check
 

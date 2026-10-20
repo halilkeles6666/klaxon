@@ -21,4 +21,13 @@ unless Rails.env.test?
     ENV["TELEGRAM_BOT_TOKEN"] = token if ENV["TELEGRAM_BOT_TOKEN"].to_s.strip.empty? && token.present?
     ENV["TELEGRAM_DEFAULT_CHAT_ID"] = default_chat if ENV["TELEGRAM_DEFAULT_CHAT_ID"].to_s.strip.empty? && default_chat.present?
   end
+
+  # config/nimbus.key (gitignored): line 1 = shared token, line 2 = the live
+  # Nimbus base URL that Klaxon calls to remediate (POST <url>/heal).
+  nimbus_file = Rails.root.join("config", "nimbus.key")
+  if nimbus_file.exist?
+    tok, url = nimbus_file.read.lines.map(&:strip)
+    ENV["NIMBUS_TOKEN"] = tok if ENV["NIMBUS_TOKEN"].to_s.strip.empty? && tok.present?
+    ENV["NIMBUS_URL"] = url if ENV["NIMBUS_URL"].to_s.strip.empty? && url.present?
+  end
 end

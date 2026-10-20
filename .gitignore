@@ -38,3 +38,6 @@
 
 # Ignore the Telegram bot token (local only, never committed).
 /config/telegram.key
+
+# Ignore the Nimbus shared token/URL (local only).
+/config/nimbus.key
