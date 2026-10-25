@@ -3,12 +3,14 @@
 > Bir olay (incident) yaşam döngüsünün **aort dilimi**: bir izleme aracı alarm gönderir → olay açılır (veya açık olaya gruplanır) → onaylanmazsa **eskalasyon zaman kuralı** devreye girer → görevli onaylar ve çözer.
 > İlham kaynağı: **PagerDuty** (markanın adı/logosu bu uygulamada kullanılmaz; yalnızca burada, README'de referans olarak geçer).
 
+> **2. hafta — otonom faza geçiş.** Klaxon artık yalnızca insan→insan bir olay yönetimi değil; **agent→agent otonom self-healing** bir kontrol düzlemi. Ayrı ve canlı bir firma sitesi ([**Nimbus**](https://github.com/halilkeles6666/nimbus)) gerçek arıza üretir; Klaxon bunu **LLM (Jev / TypeSafe System One) ile** saptar, olayı devralır, uzaktan **gerçekten düzeltir**; çözemezse o an nöbetçi olan mühendisi **Telegram'dan** uyandırır. Ayrıntılı günlük: [**CHALLENGE_LOG.md**](CHALLENGE_LOG.md) · coding-agent kuralları: [**AGENT.md**](AGENT.md). Bu faz aşağıda [Faz 3](#faz-3--otonom-ajanajan-self-healing-jev) bölümünde.
+
 <!-- CI rozeti: repo adını 'klaxon'dan farklı yaparsan aşağıdaki yolu güncelle -->
 ![CI](https://github.com/halilkeles6666/klaxon/actions/workflows/ci.yml/badge.svg)
 
-- **Canlı uygulama:** **https://klaxon-wgno.onrender.com** (Render)
+- **Canlı uygulamalar:** Klaxon (kontrol düzlemi) **https://klaxon-wgno.onrender.com** · Nimbus (izlenen firma sitesi) **https://nimbus-ijkz.onrender.com** (Render)
 - **Demo giriş:** `responder@klaxon.test` / `password`
-- **Teknoloji:** Ruby 3.4 · Rails 8 · SQLite (dev/test) · PostgreSQL (production) · Minitest
+- **Teknoloji:** Ruby 3.4 · Rails 8 · SQLite (dev/test) · PostgreSQL (production) · Minitest · **TypeSafe Jev (System One) · ActiveJob (:async)**
 
 ---
 
@@ -18,9 +20,10 @@
 3. [Faz 2 — Maliyet tahmini](#faz-2--maliyet-tahmini)
 4. [Aort dilimi](#aort-dilimi-uçtan-uca-çalışan-ana-iş-akışı)
 5. [100 puan: çözülen kullanıcı acısı](#100-puan--çözülen-kullanıcı-acısı)
-6. [Zaman kuralı ve durum geçişi — kod nerede](#zaman-kuralı-ve-durum-geçişi--kod-nerede)
-7. [Kurulum, test ve çalıştırma](#kurulum-test-ve-çalıştırma)
-8. [Yapamadıklarım](#yapamadıklarım)
+6. [Faz 3 — Otonom ajan→ajan self-healing (Jev)](#faz-3--otonom-ajanajan-self-healing-jev)
+7. [Zaman kuralı ve durum geçişi — kod nerede](#zaman-kuralı-ve-durum-geçişi--kod-nerede)
+8. [Kurulum, test ve çalıştırma](#kurulum-test-ve-çalıştırma)
+9. [Yapamadıklarım](#yapamadıklarım)
 
 ---
 
@@ -120,6 +123,59 @@ Kaynaklar (gerçek kullanıcı geri bildirimi):
 
 ---
 
+## Faz 3 — Otonom ajan→ajan self-healing (Jev)
+
+1. haftada akış **insan→insan**'dı: alarm → olay → eskalasyon → **görevli insan** onaylar ve çözer. 2. haftada vaat **agent→agent otonom self-healing**: arızayı bir ajan saptasın, devralsın, **gerçekten çözsün**; çözemezse insanı çağırsın. Tam günlük, kanıt ve commit bağlantıları: [**CHALLENGE_LOG.md**](CHALLENGE_LOG.md).
+
+### Mimari — iki ayrı canlı sistem
+
+```
+   Nimbus (ayrı firma sitesi)                 Klaxon (otonom kontrol düzlemi)
+ ┌──────────────────────────┐   telemetri   ┌─────────────────────────────────┐
+ │ mağaza + /panel arıza     │ ───POST────▶  │ 1) LLM ile ANOMALİ tespiti (Jev)│
+ │ enjeksiyonu; sayfalar      │ /api/telemetry│ 2) LLM ile DEDUP / gruplama(Jev)│
+ │ gerçekten 500/503 döner    │               │ 3) olay açılır → arka plan job  │
+ │                            │  ◀──POST────  │ 4) LLM ile AKSİYON kararı (Jev) │
+ │ POST /heal → gerçekten      │   /heal       │ 5) çözemezse → nöbetçi + Telegram│
+ │ düzelir (checkout 200)      │               │    (HITL eskalasyon)            │
+ └──────────────────────────┘               └─────────────────────────────────┘
+```
+
+- **Nimbus** ([ayrı repo](https://github.com/halilkeles6666/nimbus), ayrı deploy): gezilebilir bir mağaza. `/panel`'den bir bileşene arıza enjekte edilince sayfalar **gerçekten 500/503** döner; Nimbus kendini izleyip Klaxon'a **telemetri** push eder ve `POST /heal` ile uzaktan onarılır.
+- **Klaxon**: gelen telemetriyi işler, olayı açar ve **ajan** devralır. Üç kararın üçü de LLM (Jev); eşik/anahtar-kelime yalnızca **güvenlik ağı (fallback)**.
+
+### Her kararda LLM (Jev / TypeSafe System One)
+
+| Karar | LLM yolu | Fallback | Kod |
+|---|---|---|---|
+| **Anomali tespiti** | `LlmAnomalyDetector` — Jev `noul` olasılığı (eşik 0.6) | `ThresholdDetector` | [`app/services/anomaly_detector.rb`](app/services/anomaly_detector.rb), [`llm_anomaly_detector.rb`](app/services/llm_anomaly_detector.rb) |
+| **Dedup / gruplama** | `JevDeduper` — Jev `choice` (açık olaylar + "none", taban 0.5) | `KeyDeduper` | [`app/services/deduper.rb`](app/services/deduper.rb), [`jev_deduper.rb`](app/services/jev_deduper.rb) |
+| **Aksiyon / çözüm** | `ResolutionAgent#assess` — Jev severity + auto_ok + action | — | [`app/services/resolution_agent.rb`](app/services/resolution_agent.rb) |
+| HTTP istemci | typed System One çağrısı (Bearer) | — | [`app/services/jev_client.rb`](app/services/jev_client.rb), [`stub_jev_client.rb`](app/services/stub_jev_client.rb) (test) |
+
+> **"Anahtar kelime yerine LLM":** hoca özellikle **dedup anahtarını** kastetti — eski `dedup_key` tam-eşleşmesi yerine artık Jev benzer olayları değerlendirip gruplar.
+
+### Kapalı döngü, asenkron çözüm ve HITL
+
+- **Gerçek kapalı döngü** (enjekte→sapta→uygula→**ölç**): ajan bir aksiyon dener, dünyadan **ölçülen sağlık** geri bildirimi alır; yanlış aksiyon arızayı **gerçekten** bırakmaz, doğru aksiyon iyileştirir. Cevap anahtarı yok. — [`simulated_world.rb`](app/services/simulated_world.rb), [`store_world.rb`](app/services/store_world.rb), [`remote_store_world.rb`](app/services/remote_store_world.rb)
+- **Asenkron çözüm**: telemetri olayı açar ve `ResolveIncidentJob` kuyruğa alınır (ActiveJob `:async`); ingest cevabı bloklanmaz. — [`app/jobs/resolve_incident_job.rb`](app/jobs/resolve_incident_job.rb)
+- **HITL (human-in-the-loop) eskalasyon**: ajan çözemezse o an nöbetçi olan mühendise **Telegram'dan** alarm basılır. — [`app/services/on_call.rb`](app/services/on_call.rb), [`telegram_notifier.rb`](app/services/telegram_notifier.rb)
+- **Public ingest uçları**: [`app/controllers/api/telemetry_controller.rb`](app/controllers/api/telemetry_controller.rb), [`alerts_controller.rb`](app/controllers/api/alerts_controller.rb)
+
+### Canlı demo (uçtan uca, gerçekten koşturuldu)
+
+1. https://nimbus-ijkz.onrender.com/panel → bir bileşene arıza ver (ör. ödeme = `bad_deploy`).
+2. Site **gerçekten** bozulur (checkout 500).
+3. Nimbus telemetriyi Klaxon'a push eder → Klaxon **Jev ile anomaliyi saptar** → olay açar → **arka planda** ajan Jev'e aksiyonu sorar → Nimbus `/heal`'i çağırır.
+4. ~10 sn içinde site **gerçekten düzelir** (checkout 200).
+5. Ajan çözemezse → nöbetçi mühendise **Telegram'dan** "🚨 ALERT ALERT". Doğrulandı: ödeme=`bad_deploy` → Jev `rollback_deploy` seçti → Nimbus iyileşti.
+
+> **Slop testi (benimkinde olup çoğununkinde olmayan):** *ayrı ve canlı bir siteyi uzaktan izleyip, LLM ile anomaliyi saptayan, kararı o sitenin API'sine komut göndererek uygulayan ve çözemeyince gerçek bir nöbetçiye Telegram'dan alarm basan uçtan uca otonom (agent→agent) self-healing döngüsü.*
+
+**Güvenlik notu:** API anahtarları (TypeSafe, Telegram, Nimbus) repoya **hiç girmez** — yalnızca gitignore'lu `config/*.key` dosyalarında ve Render ortam değişkenlerinde tutulur.
+
+---
+
 ## Zaman kuralı ve durum geçişi — kod nerede
 
 | Konu | Dosya | Açıklama |
@@ -153,14 +209,18 @@ Hızlı demo akışı: `/alerts/new`'den bir alarm gönder → aynı alarmı tek
 
 ## Yapamadıklarım
 
-Dürüstlük bölümü — bunlar **bilerek kapsam dışı** bırakıldı (gizli eksik değil):
+Dürüstlük bölümü — bunlar **bilerek kapsam dışı** bırakıldı (gizli eksik değil).
 
-- **Arka plan işçisi (job) yok.** Eskalasyon, gerçek bir sistemde zamanlanmış bir job ile tetiklenirdi; burada **okuma anında tembel (lazy)** uygulanıyor (kuyruk/olay sayfası açıldığında `apply_escalations!` çalışır). Demo için yeterli, ama tarayıcı açık değilken kendiliğinden ilerlemez.
-- **Gerçek çağrı/bildirim yok** (SMS, telefon, push, Slack). Eskalasyon yalnızca olayın seviyesini ve zaman çizelgesini günceller; kimseyi gerçekten aramaz.
-- **On-call çizelgeleme yok.** Eskalasyon "seviyeye" yükseltir; gerçek nöbet takvimi/rotasyon ve "o an nöbetçi kim" ataması yok.
-- **AIOps/akıllı gruplama yok.** Dedup, tam eşleşen `dedup_key` ile çalışır; makine öğrenmesiyle benzer alarmları kümeleme yok.
+> Not: Faz 3 ile 1. haftanın bazı eksikleri **kapandı** — artık **arka plan job'u var** (`ResolveIncidentJob`, ActiveJob `:async`), **gerçek bildirim var** (Telegram ile nöbetçiyi uyandırma), **nöbet/on-call ataması var** (`OnCall`) ve dedup artık **LLM ile akıllı gruplama** yapıyor (tam-eşleşen `dedup_key` değil). Aşağıda kalan gerçek sınırlar listeleniyor.
+
+- **Kalıcı kuyruk altyapısı yok.** Asenkron çözüm ActiveJob `:async` ile, yani **süreç-içi thread havuzu**; Sidekiq/SolidQueue gibi kalıcı/dayanıklı bir kuyruk değil — süreç ölürse kuyruk uçar.
+- **Eskalasyon hâlâ okuma anında tembel (lazy).** Zaman tabanlı eskalasyon (`apply_escalations!`) kuyruk/olay sayfası açıldığında çalışır; bunu zamanlanmış bir job sürmez. (Çözüm tarafı asenkron, eskalasyon tarafı değil.)
+- **Nimbus arıza durumu bellekte.** Render yeniden başlayınca sıfırlanır; kalıcı değil.
+- **Ingest uçlarında kimlik doğrulaması yok** (`/api/telemetry`, `/alerts/new` public). Telemetri her bileşen için LLM'e çağrı yapar (maliyet kuruşlar, ama kimlik doğrulaması olmadığı için üretimde açık uç).
+- **RAG/embedding yok.** Benzerlik ve kök-neden için embedding/RAG yerine doğrudan Jev kararı kullanıldı.
+- **Gerçek Jev ağı test edilmiyor.** Testler `StubJevClient` ile offline koşar (deterministik); canlı Jev yalnızca elle doğrulandı.
 - **Çalışma takvimi/sessiz saat yok.** Olay müdahalesi 24/7 varsayılır; eskalasyon mesai/hafta sonu ayrımı yapmaz.
 - **Yetkilendirme sade:** giriş yapan herkes görevli; rol bazlı yetki (admin-only ekran) uygulanmadı.
 - **Sayfalama yok**; olay listesi büyürse tek sayfada gelir.
 - **Demo seed parolaları zayıf** (`password`) — yalnızca demo/sunum içindir.
-- **Sistem (tarayıcı) testleri yok**; kapsam model + HTTP entegrasyon testleriyle doğrulandı.
+- **Sistem (tarayıcı) testleri yok**; kapsam model + servis + HTTP entegrasyon testleriyle doğrulandı (77 run / 301 assertion).
